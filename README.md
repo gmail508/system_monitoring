@@ -8,43 +8,18 @@ zabbix-phpfrontend-nginx php8.2-fpm-fcgi
 3.cp -r /etc/zabbix/zabbix_nginx.conf 
 /etc/nginx/sites-enabled.d/zabbix.conf
 
-4.vim /etc/nginx/sites-enabled.d/zabbix.conf
-Ставим mon.jun.profi
-И меняем unix:/var/run/php8.2-fpm/php8.2-fpm.sock;
+4.etc/nginx/sites-enabled.d/zabbix.conf
+меняем unix:/var/run/php8.2-fpm/php8.2-fpm.sock;
 
-5.Vim /etc/php/8.2/fpm-fcgi/php.ini
-Ставим параметры 300 300
+5.etc/php/8.2/fpm-fcgi/php.ini
 
-6.vim /etc/zabbix/zabbix_server. conf
-Там разкоментировать DBHost и DBPassword
+6.etc/zabbix/zabbix_server. conf
 
 7.systemctl enable —now zabbix_pgsql zabbix_agent
 
-8.Вносим мон Джун профи в роутер
+8.chown _php_fpm:_php_fpm /var/www/webapps/zabbix/ui/conf/
 
-9.chown _php_fpm:_php_fpm /var/www/webapps/zabbix/ui/conf/
-
-
-!!kerberos
-
-1.mkdir -p /etc/opt/yandex/browser/policies/managed/
-
-2.vim /etc/opt/yandex/browser/policies/managed/
-mydomain.json
-
-3.Делаем конфиг внутри
-{
-"AuthServerAllowlist": "*.domain",
-"AuthNegotiateDelegateAllowlist": "*.domain"
-}
-
-4.chmod 755 /etc/opt/ -R
-
-Перезагружаем yandex browser
-Заходим в компьютер под пользователем admin
-
-
-!!ZFS 
+!Z!
 
 1.update-kernel
 
@@ -58,13 +33,12 @@ mydomain.json
   df -h проверка
 
 
-!!Пользователь
+!ROOT!
 
-1.adduser webdev
-  passwd webdev
+1.adduser serega
+  passwd serega
 
 2.groupadd service 
-  chown -R webdev:service /opt/data/
-
-3.chmod -R 750 /opt/data/
+  chown -R serega:service /etc/data/
+3.chmod -R 750 /etc/data/
 
