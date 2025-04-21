@@ -1,5 +1,4 @@
 настройка системы мониторинга сети
-!!zabbix 
 
 1.apt-get install postgresql16-server zabbix-server-pgsql zabbix-phpfrontend-php8.2 zabbix-agent 
 zabbix-phpfrontend-nginx php8.2-fpm-fcgi
