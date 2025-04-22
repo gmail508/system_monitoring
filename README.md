@@ -95,6 +95,7 @@ preempt_delay 20
     192.168.0.200 # свой виртульный ip
     
   }
+  
   track_script {
   
     nginx_check
