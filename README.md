@@ -63,6 +63,7 @@ WantedBy=multi-user.target
 Первый сервер
 1. apt-get install keepalived nginx
 2. vim /etc/keepalived/keepalived.conf
+   
    пишем туда
    
 vrrp_script nginx_check {
@@ -90,47 +91,78 @@ vrrp_instance web {
 preempt_delay 20
 
   virtual_ipaddress {
+  
     192.168.0.200 # свой виртульный ip
+    
   }
   track_script {
+  
     nginx_check
+    
   }
+  
 }
 
 втрой сервер
 1. apt-get install keepalived nginx
 2. vim /etc/keepalived/keepalived.conf
+   
   пишем туда
+  
 global_defs {
+
   enable_script_security
+  
 }
 
 vrrp_script nginx_check {
+
   script "/usr/bin/curl http://127.0.0.1"
+  
   interval 5
+  
   user nginx
+  
 }
 
 vrrp_instance web {
+
   state BACKUP
+  
   interface eth0 #свой интерфейс нужен указать
+  
   virtual_router_id 254
+  
   priority 200
+  
   advert_int 3
+  
    preempt_delay 20
 
   virtual_ipaddress {
+   
     192.168.0.200 # свой виртульный ip
+  
   }
+  
   track_script {
+
     nginx_check
+  
   }
+
 }
+
 делаем на обоих серверах : 
+
 sudo systemctl enable keepalived
+
 sudo systemctl start keepalived
+
 sudo systemctl enable nginx
+
 sudo systemctl start nginx
 
 Проверьте, что VIP назначен мастеру (CL-FRONT1):
+
 ip addr show
