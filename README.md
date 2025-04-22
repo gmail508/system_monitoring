@@ -64,7 +64,7 @@ WantedBy=multi-user.target
 1. apt-get install keepalived nginx
 2. vim /etc/keepalived/keepalived.conf
    пишем туда
-vrrp_script nginx_check {
+!!!vrrp_script nginx_check {
   script "/usr/bin/curl http://127.0.0.1"
   interval 5
   user nginx
