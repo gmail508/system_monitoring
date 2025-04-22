@@ -65,8 +65,11 @@ WantedBy=multi-user.target
 2. vim /etc/keepalived/keepalived.conf
    пишем туда
 vrrp_script nginx_check {
+
    #script "/usr/bin/curl http://127.0.0.1"
+   
   #interval 5
+  
   #user nginx
 }
 vrrp_instance web {
