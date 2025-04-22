@@ -42,10 +42,15 @@ WantedBy=multi-user.target
 14. systemctl enable mariadb автозапуск
 15. mysql_secure_installation настройка мариидб
 16. su -c mariadb вход под пользователя бд
+
 .CREATE DATABASE giteadb CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'; создание бд
+
 .CREATE USER 'gitea'@'localhost' IDENTIFIED BY 'password'; создание пользователя
+
 .GRANT ALL PRIVILEGES ON giteadb.* TO 'gitea'@'localhost'; выдаем все привилегии
+
 .FLUSH PRIVILEGES; принимаем все изменения
+
 .EXIT; выходим
 17. systemctl enable gitea
 18. systemctl start gitea
