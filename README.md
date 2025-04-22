@@ -1,44 +1,119 @@
-настройка системы мониторинга сети
+настройка систем управления версиями
+!!gta!!
+1. apt-get update
+2. apt-get install git wget mariadb-server mariadb-common mariadb-server-control
+3. mkdir /opt/app
+4. wget -O gitea https://dl.gitea.io/gitea/1.21.10/gitea-1.21.10-linux-amd64
+5. mv gitea /usr/local/bin/
+6. chmod +x /usr/local/bin/gitea
+7. groupadd --system git
 
-1.apt-get install postgresql16-server zabbix-server-pgsql zabbix-phpfrontend-php8.2 zabbix-agent 
-zabbix-phpfrontend-nginx php8.2-fpm-fcgi
+8. adduser \
+--system \
+--shell /bin/bash \
+--comment 'Git Version Control' \
+--gid git \
+--home-dir /home/git \
+--create-home \
+git
+9. mkdir -p /opt/app/{custom,data,log}
+10. chown -R git:git /opt/app/
+11. chmod -R 750 /opt/app/
+12. /etc/systemd/system/gitea.service И в нем пишем
+[Unit]
+Description=MyGitea
+After=network.target
+Wants=mariadb.service
+After=mariadb.service
 
-2.systemctl enable —now php8.2-fpm
+[Service]
+RestartSec=2s
+Type=simple
+User=git
+Group=git
+WorkingDirectory=/opt/app
+ExecStart=/usr/local/bin/gitea web --config /opt/app/gitea/app.ini
+Restart=always
+Environment=USER=git HOME=/home/git GITEA_WORK_DIR=/opt/app
 
-3.cp -r /etc/zabbix/zabbix_nginx.conf 
-/etc/nginx/sites-enabled.d/zabbix.conf
-
-4.etc/nginx/sites-enabled.d/zabbix.conf
-меняем unix:/var/run/php8.2-fpm/php8.2-fpm.sock;
-
-5.etc/php/8.2/fpm-fcgi/php.ini
-
-6.etc/zabbix/zabbix_server. conf
-
-7.systemctl enable —now zabbix_pgsql zabbix_agent
-
-8.chown _php_fpm:_php_fpm /var/www/webapps/zabbix/ui/conf/
-
-!Z!
-
-1.update-kernel
-
-2.apt-get install kernel-modules-zfs-un-def 
-
-3.modprobe zfs
-  zpool create testpool mirror /dev/sdb /dev/sdc
-
-4.mkdir /opt/app
-  zfs set mountpoint=/opt/data testpool
-  df -h проверка
+[Install]
+WantedBy=multi-user.target
+13. systemctl start mariadb включаем
+14. systemctl enable mariadb автозапуск
+15. mysql_secure_installation настройка мариидб
+16. su -c mariadb вход под пользователя бд
+CREATE DATABASE giteadb CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci'; создание бд
+CREATE USER 'gitea'@'localhost' IDENTIFIED BY 'password'; создание пользователя
+GRANT ALL PRIVILEGES ON giteadb.* TO 'gitea'@'localhost'; выдаем все привилегии
+FLUSH PRIVILEGES; принимаем все изменения
+EXIT; выходим
+17. systemctl enable gitea
+18. systemctl start gitea
+19. sed -i "s/skip-networking/#skip-networking/g" /etc/my.cnf.d/server.cnf
+20. systemctl restart mariadb
 
 
-!ROOT!
+!!keep!!
 
-1.adduser serega
-  passwd serega
+Первый сервер
+1. apt-get install keepalived nginx
+2. vim /etc/keepalived/keepalived.conf
+   пишем туда
+vrrp_script nginx_check {
+  script "/usr/bin/curl http://127.0.0.1"
+  interval 5
+  user nginx
+}
+vrrp_instance web {
+  state MASTER
+  interface eth0 #свой интерфейс нужен указать
+  virtual_router_id 254
+  priority 220
+  advert_int 3
+preempt_delay 20
 
-2.groupadd service 
-  chown -R serega:service /etc/data/
-3.chmod -R 750 /etc/data/
+  virtual_ipaddress {
+    192.168.0.200 # свой виртульный ip
+  }
+  track_script {
+    nginx_check
+  }
+}
 
+втрой сервер
+1. apt-get install keepalived nginx
+2. vim /etc/keepalived/keepalived.conf
+  пишем туда
+global_defs {
+  enable_script_security
+}
+
+vrrp_script nginx_check {
+  script "/usr/bin/curl http://127.0.0.1"
+  interval 5
+  user nginx
+}
+
+vrrp_instance web {
+  state BACKUP
+  interface eth0 #свой интерфейс нужен указать
+  virtual_router_id 254
+  priority 200
+  advert_int 3
+   preempt_delay 20
+
+  virtual_ipaddress {
+    192.168.0.200 # свой виртульный ip
+  }
+  track_script {
+    nginx_check
+  }
+}
+делаем на обоих серверах : 
+sudo systemctl enable keepalived
+sudo systemctl start keepalived
+sudo systemctl enable nginx
+sudo systemctl start nginx
+
+Проверьте, что VIP назначен мастеру (CL-FRONT1):
+ip addr show
